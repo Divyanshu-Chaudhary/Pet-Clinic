@@ -7,6 +7,7 @@ pipeline {
     }
 
     environment {
+        SONAR_HOME = tool 'sonar-scanner'
         IMAGE_NAME = "divyanshu067/petclinic"
     }
 
@@ -31,15 +32,38 @@ pipeline {
             }
         }
 
-        stage('Docker Build & Push') {
+        stage('Docker Build') {
             steps {
-                withDockerRegistry(credentialsId: 'dockerhub-creds', url: 'https://index.docker.io/v1/') {
-                    sh '''
-                    docker build -t $IMAGE_NAME:latest .
-                    docker push $IMAGE_NAME:latest
-                    '''
+                sh 'docker build -t $DOCKER_IMAGE:$BUILD_NUMBER .'
+                sh 'docker tag $DOCKER_IMAGE:$BUILD_NUMBER $DOCKER_IMAGE:latest'
+            }
+        }
+        
+        stage('Docker Push') {
+            steps {
+                withCredentials([usernamePassword(
+                    credentialsId: 'dockerhub-creds',
+                    usernameVariable: 'divyanshu067',
+                    passwordVariable: '@8CYQr2r92'
+                )]) {
+                    sh 'echo $DOCKER_PASS | docker login -u $DOCKER_USER --password-stdin'
+                    sh 'docker push $DOCKER_IMAGE:$BUILD_NUMBER'
+                    sh 'docker push $DOCKER_IMAGE:latest'
                 }
             }
+        }
+        
+        stage('Deploy') {
+            steps {
+                sh 'docker rm -f myapp || true'
+                sh 'docker run -d --name myapp -p 8081:8080 $DOCKER_IMAGE:latest'
+            }
+        }
+    }
+    
+    post {
+        always {
+            sh 'docker logout || true'
         }
     }
 }
