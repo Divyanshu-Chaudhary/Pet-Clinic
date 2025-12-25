@@ -27,7 +27,7 @@ pipeline {
         stage('SonarQube Analysis') {
             steps {
                 withSonarQubeEnv('sonar') {
-                    sh 'mvn sonar:sonar'
+                    sh 'mvn -DskipTests org.sonarsource.scanner.maven:sonar-maven-plugin:3.10.0.2594:sonar'
                 }
             }
         }
