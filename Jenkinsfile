@@ -8,7 +8,7 @@ pipeline {
 
     environment {
         SONAR_HOME = tool 'sonar-scanner'
-        IMAGE_NAME = "divyanshu067/petclinic"
+        DOCKER_IMAGE = "divyanshu067/petclinic"
     }
 
     stages {
